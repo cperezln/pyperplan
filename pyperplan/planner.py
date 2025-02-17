@@ -46,6 +46,7 @@ def get_heuristics():
     Scan all python modules in the "heuristics" directory for classes ending
     with "Heuristic".
     """
+    # TODO modificar este heuristics para meter las heurísticas personalizadas que queramos
     heuristics = []
     src_dir = os.path.dirname(os.path.abspath(__file__))
     heuristics_dir = os.path.abspath(os.path.join(src_dir, "heuristics"))

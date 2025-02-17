@@ -19,8 +19,10 @@
 Building the search node and associated methods
 """
 
+from typing import IO, Any, Dict, Tuple, Optional, List, Union, Type, Sequence, cast
 
 class SearchNode:
+    # TODO CAMBIOS AQUÍ
     """
     The SearchNode class implements recursive data structure to build a
     search space for planning algorithms. Each node links to is parent
@@ -28,7 +30,7 @@ class SearchNode:
     the node and the path length in the count of applied operators.
     """
 
-    def __init__(self, state, parent, action, g):
+    def __init__(self, state, parent, action, g, accepted: Optional[set] = None):
         """
         Construct a search node
 
@@ -42,6 +44,7 @@ class SearchNode:
         self.parent = parent
         self.action = action
         self.g = g
+        self.accepted = accepted
 
     def extract_solution(self):
         """
@@ -55,6 +58,9 @@ class SearchNode:
         solution.reverse()
         return solution
 
+    def __str__(self):
+        return "Predicates : {} \n Accepted: {}".format(str([i for i in self.state]), str(self.accepted))
+
 
 def make_root_node(initial_state):
     """
@@ -64,7 +70,7 @@ def make_root_node(initial_state):
 
     @param initial_state: The initial state of the search space.
     """
-    return SearchNode(initial_state, None, None, 0)
+    return SearchNode(initial_state, None, None, 0, accepted=set())
 
 
 def make_child_node(parent_node, action, state):
@@ -73,4 +79,5 @@ def make_child_node(parent_node, action, state):
     The node is linked to the given parent node.
     The g-value is set to the parents g-value + 1.
     """
-    return SearchNode(state, parent_node, action, parent_node.g + 1)
+    return SearchNode(state, parent_node, action, parent_node.g + 1, accepted={i for i in parent_node.accepted})
+

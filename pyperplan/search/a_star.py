@@ -18,10 +18,10 @@
 """
 Implements the A* (a-star) and weighted A* search algorithm.
 """
-
+import pickle
 import heapq
 import logging
-
+import networkx as nx
 from . import searchspace
 
 
@@ -62,6 +62,7 @@ def ordered_node_weighted_astar(weight):
     return lambda node, h, node_tiebreaker: (
         node.g + weight * h,
         h,
+        node.g,
         node_tiebreaker,
         node,
     )
@@ -96,7 +97,7 @@ def greedy_best_first_search(task, heuristic, use_relaxed_plan=False):
     )
 
 
-def weighted_astar_search(task, heuristic, weight=5, use_relaxed_plan=False):
+def weighted_astar_search(task, heuristic, weight=1, use_relaxed_plan=False):
     """
     Searches for a plan in the given task using A* search.
 
@@ -111,7 +112,7 @@ def weighted_astar_search(task, heuristic, weight=5, use_relaxed_plan=False):
 
 
 def astar_search(
-    task, heuristic, make_open_entry=ordered_node_astar, use_relaxed_plan=False
+        task, heuristic, make_open_entry=ordered_node_astar, use_relaxed_plan=False
 ):
     """
     Searches for a plan in the given task using A* search.
@@ -126,21 +127,108 @@ def astar_search(
                            ordered_node_greedy_best_first with obvious
                            meanings.
     """
-    open = []
+    # TODO CAMBIOS AQUÍ
+    # print("---------------- EMPIEZA LA BÚSQUEDA -----------------")
+    ls = []
     state_cost = {task.initial_state: 0}
     node_tiebreaker = 0
 
     root = searchspace.make_root_node(task.initial_state)
+    iss = ['(at pallet0 depot0)',
+    '(clear crate1)',
+    '(at pallet1 distributor0)',
+    '(clear crate4)',
+    '(at pallet2 distributor1)',
+    '(clear crate5)',
+    '(at truck0 depot0)',
+    '(at truck1 distributor0)',
+    '(at hoist0 depot0)',
+    '(available hoist0)',
+    '(at hoist1 distributor0)',
+    '(available hoist1)',
+    '(at hoist2 distributor1)',
+    '(available hoist2)',
+    '(at crate0 distributor0)',
+    '(on crate0 pallet1)',
+    '(at crate1 depot0)',
+    '(on crate1 pallet0)',
+    '(at crate2 distributor1)',
+    '(on crate2 pallet2)',
+    '(at crate3 distributor0)',
+    '(on crate3 crate0)',
+    '(at crate4 distributor0)',
+    '(on crate4 crate3)',
+    '(at crate5 distributor1)',
+    '(on crate5 crate2)']
+
+
+    oss = ['(at pallet0 depot0)',
+           '(clear crate0)',
+           '(at pallet1 distributor0)',
+           '(clear crate3)',
+           '(at pallet2 distributor1)',
+           '(clear crate2)',
+           '(at truck0 depot0)',
+           '(at truck1 depot0)',
+           '(at hoist0 depot0)',
+           '(available hoist0)',
+           '(at hoist1 distributor0)',
+           '(available hoist1)',
+           '(at hoist2 distributor1)',
+           '(available hoist2)',
+           '(at crate0 depot0)',
+           '(on crate0 pallet0)',
+           '(at crate1 distributor1)',
+           '(on crate1 pallet2)',
+           '(at crate2 distributor1)',
+           '(on crate2 crate1)',
+           '(at crate3 distributor0)',
+           '(on crate3 pallet1)']
+    """iss = [
+        '(CLEAR C)',
+        '(CLEAR A)',
+        '(CLEAR B)',
+        '(CLEAR D)',
+        '(ONTABLE C)',
+        '(ONTABLE A)',
+        '(ONTABLE B)',
+        '(ONTABLE D)',
+        '(HANDEMPTY)']"""
+    iss = [i.lower() for i in oss]
+    root.accepted = {i for i in iss}
     init_h = heuristic(root)
-    heapq.heappush(open, make_open_entry(root, init_h, node_tiebreaker))
+
+    # print("Initial state: %s" % root.state)
+    # print("Initial h value: %f" % init_h)
+    ordered_tuple = make_open_entry(root, init_h, node_tiebreaker)
+    heapq.heappush(ls, ordered_tuple)
     logging.info("Initial h value: %f" % init_h)
 
     besth = float("inf")
     counter = 0
     expansions = 0
 
-    while open:
-        (f, h, _tie, pop_node) = heapq.heappop(open)
+    while ls:
+        # print("------------------------------------------------------")
+        (f, h, _, _tie, pop_node) = heapq.heappop(ls)
+
+        print("-------------------------------")
+        print("Número de expansiones", expansions)
+        print("Operador con el que llegamos al estado actual", pop_node.action)
+        print("Átomos en el estado actual:")
+        s = ""
+        for item in pop_node.state:
+            s += "\t{}\n".format(item)
+        print(s)
+        print("Valor actual de g", pop_node.g)
+        print("Valor actual de h", h)
+        print("Landmarks aceptados actualmente:")
+        s = ""
+        for item in pop_node.accepted:
+            s += "\t{}\n".format(item)
+        print(s)
+        print("-------------------------------")
+
         if h < besth:
             besth = h
             logging.debug("Found new best h: %d after %d expansions" % (besth, counter))
@@ -151,10 +239,9 @@ def astar_search(
         # path after creating this node and hence can disregard it.
         if state_cost[pop_state] == pop_node.g:
             expansions += 1
-
             if task.goal_reached(pop_state):
-                logging.info("Goal reached. Start extraction of solution.")
-                logging.info("%d Nodes expanded" % expansions)
+                print("Goal reached. Start extraction of solution.")
+                print("%d Nodes expanded" % expansions)
                 return pop_node.extract_solution()
             rplan = None
             if use_relaxed_plan:
@@ -178,6 +265,10 @@ def astar_search(
 
                 succ_node = searchspace.make_child_node(pop_node, op, succ_state)
                 h = heuristic(succ_node)
+
+                succ = searchspace.make_child_node(
+                    pop_node, op, succ_state
+                )
                 if h == float("inf"):
                     # don't bother with states that can't reach the goal anyway
                     continue
@@ -186,10 +277,12 @@ def astar_search(
                     # We either never saw succ_state before, or we found a
                     # cheaper path to succ_state than previously.
                     node_tiebreaker += 1
-                    heapq.heappush(open, make_open_entry(succ_node, h, node_tiebreaker))
+                    ordered_tuple = make_open_entry(succ_node, h, node_tiebreaker)
+                    heapq.heappush(ls, ordered_tuple)
                     state_cost[succ_state] = succ_node.g
 
         counter += 1
     logging.info("No operators left. Task unsolvable.")
     logging.info("%d Nodes expanded" % expansions)
+
     return None
