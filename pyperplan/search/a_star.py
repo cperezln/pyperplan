@@ -134,68 +134,7 @@ def astar_search(
     node_tiebreaker = 0
 
     root = searchspace.make_root_node(task.initial_state)
-    iss = ['(at pallet0 depot0)',
-    '(clear crate1)',
-    '(at pallet1 distributor0)',
-    '(clear crate4)',
-    '(at pallet2 distributor1)',
-    '(clear crate5)',
-    '(at truck0 depot0)',
-    '(at truck1 distributor0)',
-    '(at hoist0 depot0)',
-    '(available hoist0)',
-    '(at hoist1 distributor0)',
-    '(available hoist1)',
-    '(at hoist2 distributor1)',
-    '(available hoist2)',
-    '(at crate0 distributor0)',
-    '(on crate0 pallet1)',
-    '(at crate1 depot0)',
-    '(on crate1 pallet0)',
-    '(at crate2 distributor1)',
-    '(on crate2 pallet2)',
-    '(at crate3 distributor0)',
-    '(on crate3 crate0)',
-    '(at crate4 distributor0)',
-    '(on crate4 crate3)',
-    '(at crate5 distributor1)',
-    '(on crate5 crate2)']
 
-
-    oss = ['(at pallet0 depot0)',
-           '(clear crate0)',
-           '(at pallet1 distributor0)',
-           '(clear crate3)',
-           '(at pallet2 distributor1)',
-           '(clear crate2)',
-           '(at truck0 depot0)',
-           '(at truck1 depot0)',
-           '(at hoist0 depot0)',
-           '(available hoist0)',
-           '(at hoist1 distributor0)',
-           '(available hoist1)',
-           '(at hoist2 distributor1)',
-           '(available hoist2)',
-           '(at crate0 depot0)',
-           '(on crate0 pallet0)',
-           '(at crate1 distributor1)',
-           '(on crate1 pallet2)',
-           '(at crate2 distributor1)',
-           '(on crate2 crate1)',
-           '(at crate3 distributor0)',
-           '(on crate3 pallet1)']
-    """iss = [
-        '(CLEAR C)',
-        '(CLEAR A)',
-        '(CLEAR B)',
-        '(CLEAR D)',
-        '(ONTABLE C)',
-        '(ONTABLE A)',
-        '(ONTABLE B)',
-        '(ONTABLE D)',
-        '(HANDEMPTY)']"""
-    iss = [i.lower() for i in oss]
-    root.accepted = {i for i in iss}
     init_h = heuristic(root)
 
     # print("Initial state: %s" % root.state)
@@ -212,7 +151,7 @@ def astar_search(
         # print("------------------------------------------------------")
         (f, h, _, _tie, pop_node) = heapq.heappop(ls)
 
-        print("-------------------------------")
+        """print("-------------------------------")
         print("Número de expansiones", expansions)
         print("Operador con el que llegamos al estado actual", pop_node.action)
         print("Átomos en el estado actual:")
@@ -227,7 +166,7 @@ def astar_search(
         for item in pop_node.accepted:
             s += "\t{}\n".format(item)
         print(s)
-        print("-------------------------------")
+        print("-------------------------------")"""
 
         if h < besth:
             besth = h

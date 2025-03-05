@@ -30,7 +30,7 @@ class SearchNode:
     the node and the path length in the count of applied operators.
     """
 
-    def __init__(self, state, parent, action, g, accepted: Optional[set] = None):
+    def __init__(self, state, parent, action, g):
         """
         Construct a search node
 
@@ -44,19 +44,25 @@ class SearchNode:
         self.parent = parent
         self.action = action
         self.g = g
-        self.accepted = accepted
+
+    def set_interest_landmarks(self, lms):
+        self.interest_landmarks = lms
 
     def extract_solution(self):
         """
         Returns the list of actions that were applied from the initial node to
         the goal node.
         """
-        solution = []
+        solution_actions = []
+        solution_fluents = []
         while self.parent is not None:
-            solution.append(self.action)
+            solution_actions.append(self.action)
+            solution_fluents.append([i for i in self.state])
             self = self.parent
-        solution.reverse()
-        return solution
+        solution_fluents.append([i for i in self.state])
+        solution_actions.reverse()
+        solution_fluents.reverse()
+        return (solution_actions, solution_fluents)
 
     def __str__(self):
         return "Predicates : {} \n Accepted: {}".format(str([i for i in self.state]), str(self.accepted))
@@ -70,7 +76,7 @@ def make_root_node(initial_state):
 
     @param initial_state: The initial state of the search space.
     """
-    return SearchNode(initial_state, None, None, 0, accepted=set())
+    return SearchNode(initial_state, None, None, 0)
 
 
 def make_child_node(parent_node, action, state):
@@ -79,5 +85,5 @@ def make_child_node(parent_node, action, state):
     The node is linked to the given parent node.
     The g-value is set to the parents g-value + 1.
     """
-    return SearchNode(state, parent_node, action, parent_node.g + 1, accepted={i for i in parent_node.accepted})
+    return SearchNode(state, parent_node, action, parent_node.g + 1) #, accepted={i for i in parent_node.accepted})
 
